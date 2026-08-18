@@ -47,6 +47,20 @@
   --success-color: {{ green }} !important;
 }
 
+/* The workspace gradient is written as an inline custom property on these two
+ * elements by ZenGradientGenerator, which outranks anything set on :root (the
+ * inline value is closer to the element). Override it there too, otherwise the
+ * chrome keeps Zen's own neutral background while everything else is themed. */
+#zen-browser-background {
+  --zen-main-browser-background: {{ background }} !important;
+  --zen-main-browser-background-old: {{ background }} !important;
+}
+
+#zen-toolbar-background {
+  --zen-main-browser-background-toolbar: {{ dark_background }} !important;
+  --zen-main-browser-background-toolbar-old: {{ dark_background }} !important;
+}
+
 /* Match the built-in "find bar" / notification surfaces */
 findbar,
 .notificationbox-stack {
