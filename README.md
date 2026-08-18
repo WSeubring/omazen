@@ -1,5 +1,8 @@
 # omazen
 
+> **Disclaimer:** vibe-coded for my own machine. Personal use, no support,
+> no guarantees - read the scripts before you run them.
+
 Keeps [Zen Browser](https://zen-browser.app/)'s chrome colors in sync with the
 current [Omarchy](https://omarchy.org/) theme. Switch themes with
 `omarchy theme set ...` and Zen follows on its next start - no per-theme
