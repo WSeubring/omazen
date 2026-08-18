@@ -1,0 +1,44 @@
+#!/bin/bash
+# Sync Zen Browser prefs with the current Omarchy theme.
+# The chrome colors themselves come from ~/.config/omarchy/themed/zen.css.tpl,
+# rendered to ~/.local/state/omarchy/current/theme/zen.css and imported by
+# each profile's chrome/userChrome.css. This hook only syncs the prefs that
+# cannot live in CSS (native accent color, light/dark mode) and tells the user
+# to restart Zen, since userChrome.css is read at startup only.
+
+set -euo pipefail
+
+COLORS="$HOME/.local/state/omarchy/current/theme/colors.toml"
+[[ -f $COLORS ]] || exit 0
+
+value_of() {
+  sed -nE "s/^$1[[:space:]]*=[[:space:]]*\"?([^\"]+)\"?.*/\1/p" "$COLORS" | head -1
+}
+
+accent=$(value_of accent)
+mode=$(value_of mode)
+[[ -n $accent ]] || exit 0
+dark=true
+[[ $mode == "light" ]] && dark=false
+
+for profile in "$HOME"/.zen/*/; do
+  [[ -f "$profile/chrome/userChrome.css" ]] || continue
+  grep -q 'omarchy theme sync' "$profile/chrome/userChrome.css" || continue
+
+  user_js="$profile/user.js"
+  tmp=$(mktemp)
+  if [[ -f $user_js ]]; then
+    sed '/>>> omarchy theme colors/,/<<< omarchy theme colors/d' "$user_js" >"$tmp"
+  fi
+  cat >>"$tmp" <<PREFS
+// >>> omarchy theme colors - generated, do not edit >>>
+user_pref("zen.theme.accent-color", "$accent");
+user_pref("ui.systemUsesDarkTheme", $([[ $dark == true ]] && echo 1 || echo 0));
+// <<< omarchy theme colors - generated, do not edit <<<
+PREFS
+  mv "$tmp" "$user_js"
+done
+
+if pgrep -x zen-bin >/dev/null 2>&1 || pgrep -x zen >/dev/null 2>&1; then
+  notify-send -a Omarchy "Zen Browser" "Restart Zen to pick up the new theme colors." || true
+fi
